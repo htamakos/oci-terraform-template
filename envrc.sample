@@ -1,0 +1,6 @@
+# S3 Backend Config
+export TF_CLI_ARGS_init="-backend-config='bucket=terraform-state'"
+export TF_CLI_ARGS_init="$TF_CLI_ARGS_init -backend-config='key=terraform.tfstate'"
+export TF_CLI_ARGS_init="$TF_CLI_ARGS_init -backend-config='region=us-ashburn-1'"
+export TF_CLI_ARGS_init="$TF_CLI_ARGS_init -backend-config='endpoint=https://<namespace>.compat.objectstorage.us-ashburn-1.oraclecloud.com'"
+export TF_CLI_ARGS_init="$TF_CLI_ARGS_init -backend-config='profile=DEFAULT'"

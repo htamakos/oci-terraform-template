@@ -1,0 +1,299 @@
+oci_tenancy_ocid     = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+oci_user_ocid        = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+oci_private_key_path = "/path/to/oci_api_key.pem"
+oci_fingerprint      = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+oci_region           = "us-ashburn-1"
+oci_compartment_id   = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+
+name_prefix = "sample"
+
+oci_vcn_config = {
+  vcn01 = {
+    cidr_block       = "10.0.0.0/16"
+    display_name     = "vcn01"
+    dns_label        = "vcn01"
+    compartment_name = null
+  }
+  ds = {
+    cidr_block       = "192.168.0.0/16"
+    display_name     = "data_science"
+    dns_label        = "ds"
+    compartment_name = "datascience"
+  }
+}
+
+oci_subnet_config = {
+  pub_bas_sub = {
+    vcn_key                    = "vcn01"
+    cidr_block                 = "10.0.1.0/24"
+    display_name               = "pub_bas"
+    dns_label                  = "pubbas"
+    prohibit_public_ip_on_vnic = false
+    oci_security_list_config = {
+      vcn_key      = "vcn01"
+      defined_tags = []
+      egress_security_rules = {
+        allow_all = {
+          destination = "0.0.0.0/0"
+          protocol    = "all"
+          stateless   = false
+          port        = null
+      } }
+
+      ingress_security_rules = {
+        allow_ssh = {
+          source    = "0.0.0.0/0"
+          protocol  = "6"
+          stateless = false
+          port      = 22
+        }
+      }
+    }
+  }
+
+  pri_ap_sub = {
+    vcn_key                    = "vcn01"
+    cidr_block                 = "10.0.2.0/24"
+    display_name               = "pri_ap_sub"
+    dns_label                  = "priap"
+    prohibit_public_ip_on_vnic = true
+    oci_security_list_config = {
+      vcn_key      = "vcn01"
+      defined_tags = []
+      egress_security_rules = {
+        allow_all = {
+          destination = "0.0.0.0/0"
+          protocol    = "all"
+          stateless   = false
+          port        = null
+        }
+      }
+      ingress_security_rules = {
+        allow_ssh_from_bas = {
+          source    = "10.0.1.0/24"
+          protocol  = "6"
+          stateless = false
+          port      = 22
+        }
+      }
+    }
+  }
+
+  pri_db_sub = {
+    vcn_key                    = "vcn01"
+    cidr_block                 = "10.0.3.0/24"
+    display_name               = "pri_db_sub"
+    dns_label                  = "pridb"
+    prohibit_public_ip_on_vnic = true
+    oci_security_list_config = {
+      vcn_key      = "vcn01"
+      defined_tags = []
+      egress_security_rules = {
+        allow_all = {
+          destination = "0.0.0.0/0"
+          protocol    = "all"
+          stateless   = false
+          port        = null
+        }
+      }
+      ingress_security_rules = {
+        allow_ssh_from_bas = {
+          source    = "10.0.1.0/24"
+          protocol  = "6"
+          stateless = false
+          port      = 22
+        },
+        allow_dbconn_from_ap = {
+          source    = "10.0.2.0/24"
+          protocol  = "6"
+          stateless = false
+          port      = 1521
+        }
+      }
+    }
+  }
+
+  pri_ds_sub = {
+    vcn_key                    = "ds"
+    cidr_block                 = "192.168.1.0/24"
+    display_name               = "pri_ds"
+    dns_label                  = "prids"
+    prohibit_public_ip_on_vnic = true
+    oci_security_list_config = {
+      vcn_key      = "ds"
+      defined_tags = []
+      egress_security_rules = {
+        allow_all = {
+          destination = "0.0.0.0/0"
+          protocol    = "all"
+          stateless   = false
+          port        = null
+      } }
+
+      ingress_security_rules = {
+        allow_ssh = {
+          source    = "0.0.0.0/0"
+          protocol  = "6"
+          stateless = false
+          port      = 22
+        }
+      }
+    }
+  }
+}
+
+oci_instance_config = {
+  bas01 = {
+    display_name = "bas01"
+    subnet_key   = "pub_bas_sub"
+    shape        = "VM.Standard.A1.Flex"
+    shape_config = {
+      instance_shape_config_ocpus         = 1
+      instance_shape_config_memory_in_gbs = 6
+    }
+    oci_availability_domain = "veBo:US-ASHBURN-AD-1"
+    oci_fault_domain        = "FAULT-DOMAIN-1"
+    assign_public_ip        = true
+    private_ip              = "10.0.1.11"
+    hoshostname_label       = "bas"
+    source_id               = "ocid1.image.oc1.iad.aaaaaaaaijzevirp67bdceiebqeg4epuqstqcogohn3gskw76ngxupke3zfa"
+    boot_volume_size_in_gbs = 50
+
+    metadata = {
+      ssh_authorized_keys = "~/.ssh/id_rsa.pub"
+      user_data           = null
+    }
+
+    preserve_boot_volume = false
+  }
+}
+
+oci_database_config = {
+  db01 = {
+    oci_availability_domain = "veBo:US-ASHBURN-AD-2"
+    oci_fault_domains       = ["FAULT-DOMAIN-2"]
+    database_edition        = "ENTERPRISE_EDITION_HIGH_PERFORMANCE"
+    display_name            = "db01"
+    admin_password          = "xxxxxxxxxxxxxxxxxxxxxxxxxx"
+    db_name                 = "orcl"
+    character_set           = "AL32UTF8"
+    ncharacter_set          = "AL16UTF16"
+    db_workload             = "OLTP"
+    pdb_name                = "pdb01"
+    auto_backup_enabled     = false
+    db_version              = "21.1.0.0"
+    storage_management      = "ASM"
+    shape                   = "VM.Standard2.2"
+    subnet_key              = "pri_db_sub"
+    data_storage_percentage = 80
+    data_storage_size_in_gb = 256
+    license_model           = "LICENSE_INCLUDED"
+    node_count              = 1
+    private_ip              = "10.0.3.11"
+    hostname                = "db01"
+    ssh_public_keys         = ["~/.ssh/id_rsa.pub"]
+    time_zone               = "Asia/Tokyo"
+
+    defined_tags = null
+  }
+}
+
+oci_autonomous_database_config = {
+  adb01 = {
+    display_name   = "adb01"
+    admin_password = "xxxxxxxxxxxxxxxxxx"
+
+    cpu_core_count           = 1
+    data_storage_size_in_tbs = 1
+
+    db_name     = "orcl"
+    db_workload = "OLTP"
+    db_version  = "21c"
+
+    is_auto_scaling_enabled                        = false
+    is_dedicated                                   = false
+    is_free_tier                                   = true
+    is_preview_version_with_service_terms_accepted = false
+    license_model                                  = "LICENSE_INCLUDED"
+
+    subnet_key             = null
+    private_endpoint_label = null
+    whitelisted_ips        = ["0.0.0.0/0"]
+  }
+}
+
+oci_datascience_project_config = {
+  ds_project01 = {
+    compartment_name = "datascience"
+    description      = "first project"
+    display_name     = "ds_project01"
+
+  }
+}
+
+oci_datascience_notebook_session_config = {
+  session01 = {
+    display_name = "session01"
+    shape = "VM.Standard2.4"
+    subnet_key = "pri_ds_sub"
+    project_key = "ds_project01"
+    block_storage_size_in_gbs = 250
+    notebook_session_shape_config_details = null
+  }
+}
+
+
+oci_user_config = {
+  data_scientist_user = {
+    name        = "data-scientists"
+    description = "Data Scientist User"
+    email       = null,
+  }
+}
+
+oci_group_config = {
+  data_scientist_group = {
+    name        = "data-scientists-group"
+    description = "Data Scientist Group"
+  }
+}
+
+oci_user_group_config = {
+  data_scientist = {
+    group_key = "data_scientist_group"
+    user_key  = "data_scientist_user"
+  }
+}
+
+oci_dynamic_group_config = {
+  data_science = {
+    name          = "data-science-dynamic-group"
+    description   = "Data Science Dynamic Group"
+    matching_rule = "ALL {resource.type = 'datasciencenotebooksession', resource.compartment.id = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'}"
+  }
+}
+
+oci_policy_config = {
+  data_science_group_policy = {
+    description = "For Data Scientist Group"
+    name        = "data_scientists_policy"
+    statements = [
+      "allow group data-scientists-group to manage data-science-family in compartment datascience",
+      "allow group data-scientists-group to use virtual-network-family in compartment datascience",
+      "allow service datascience to use virtual-network-family in compartment datascience"
+    ]
+  }
+  data_science_dynamic_group_policy = {
+    description = "For Data Science"
+    statements = [
+      "allow dynamic-group data-science-dynamic-group to manage data-science-family in compartment datascience",
+      "allow dynamic-group data-science-dynamic-group to manage dataflow-family in compartment datascience",
+      "allow dynamic-group data-science-dynamic-group to read compartments in compartment datascience",
+      "allow dynamic-group data-science-dynamic-group to read users in tenancy",
+      "allow dynamic-group data-science-dynamic-group to manage object-family in tenancy"
+    ],
+    name = "data_science_policy"
+  }
+}
+
+enable_output_oci_info = false
